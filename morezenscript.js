@@ -354,7 +354,43 @@ if(location.protocol === 'https:' && location.hostname === parent.location.hostn
         })
     );
 
-    // Patch point f622ce1a
+    // When framed
+    self == top || (
+        $('#header').remove(), $('#sidebar').remove(), // Strip common elements
+        $('#content').css('margin-left', '0') // Expand content box
+    }
+
+    // Change all the properties
+    // Tried injecting a <style> tag here, and Chrome had an aneurysm
+    /*jshint multistr: true */
+    $('body').css('overflow', 'hidden');
+    $('#header').css('position', 'static');
+    $('#content').css('position', 'fixed')
+        .css('display', 'inline-block')
+        .css('margin', '0')
+        .css('height', '100%')
+        .css('width', '100%')
+        .css('padding', '0 0 50px 0')
+        .css('padding-left', '210px')
+        .css('overflow', 'hidden');
+    $('#content .content-wrapper').css('display', 'inline-block')
+        .css('height', '100%')
+        .css('padding', '0 25px')
+        .css('overflow-x', 'hidden')
+        .css('overflow-y', 'auto');
+    $('<style>\
+    div.modal {\
+        top: 60px;\
+        left: 210px;\
+    }\
+    #sidebar.hide-sidebar + #content div.modal {\
+        left: 0;\
+    }\
+    </style>').appendTo('head');
+
+    // We need the backdrop inside our modified #container for z-index purposes
+    // FIXME: This is hacky and depreciated, and might have the potential to cause serious errors
+    $('body').on('DOMNodeInserted', 'div.modal-backdrop', function() { $('#content').append(this); });
 
     // Page-specific scripts
     switch(location.pathname.slice(1).split('/')[0]) {

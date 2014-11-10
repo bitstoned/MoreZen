@@ -66,6 +66,7 @@
 //                           * Fixed ticker flash
 //                           * WebKit: Got rid of sidebar scrollbar under normal conditions
 //                           * WebKit: Patched up sidebar flicker/disappear (root cause still unknown)
+//                           * Fixed a sidebar regression introduced during move to GitHub
 //                           * Performed some FF testing
 //                           * Applied permissive license
 //                           * Gave the changelog a backstory
@@ -354,43 +355,7 @@ if(location.protocol === 'https:' && location.hostname === parent.location.hostn
         })
     );
 
-    // When framed
-    self == top || (
-        $('#header').remove(), $('#sidebar').remove(), // Strip common elements
-        $('#content').css('margin-left', '0') // Expand content box
-    }
-
-    // Change all the properties
-    // Tried injecting a <style> tag here, and Chrome had an aneurysm
-    /*jshint multistr: true */
-    $('body').css('overflow', 'hidden');
-    $('#header').css('position', 'static');
-    $('#content').css('position', 'fixed')
-        .css('display', 'inline-block')
-        .css('margin', '0')
-        .css('height', '100%')
-        .css('width', '100%')
-        .css('padding', '0 0 50px 0')
-        .css('padding-left', '210px')
-        .css('overflow', 'hidden');
-    $('#content .content-wrapper').css('display', 'inline-block')
-        .css('height', '100%')
-        .css('padding', '0 25px')
-        .css('overflow-x', 'hidden')
-        .css('overflow-y', 'auto');
-    $('<style>\
-    div.modal {\
-        top: 60px;\
-        left: 210px;\
-    }\
-    #sidebar.hide-sidebar + #content div.modal {\
-        left: 0;\
-    }\
-    </style>').appendTo('head');
-
-    // We need the backdrop inside our modified #container for z-index purposes
-    // FIXME: This is hacky and depreciated, and might have the potential to cause serious errors
-    $('body').on('DOMNodeInserted', 'div.modal-backdrop', function() { $('#content').append(this); });
+    // Patch point f622ce1a
 
     // Page-specific scripts
     switch(location.pathname.slice(1).split('/')[0]) {
@@ -620,8 +585,8 @@ if(location.protocol === 'https:' && location.hostname === parent.location.hostn
         $('#toggle-sidebar i').css('transform', 'rotate(' + (state ? '0' : '-180deg') + ')');
         setTimeout(function() { $('#sidebar').toggleClass('hide-sidebar'); }, state ? 0 : 525);
 
-        ($.fn.stateFactory.getState(!0, 'sidebar') && $('#content').css('padding-left', '210px')) ||
-            (setTimeout(function() { $('#content').css('padding-left', '0'); }, 350));
+        ($.fn.stateFactory.getState(!0, 'sidebar') && $('#content').css('padding-left', '235px')) ||
+            (setTimeout(function() { $('#content').css('padding-left', '25px'); }, 350));
     });
 
     // Display hacks
@@ -634,6 +599,7 @@ if(location.protocol === 'https:' && location.hostname === parent.location.hostn
         $('.dataTable').css('width', '100%'); // Fluid tables
         $('.panel-controls > :not(:first-child)').css('display', 'inline-block'); // Inline refresh/filter controls
         $('.btc-spot-price').tooltip(); // Fix for pages that call this before our script runs
+        $('#content').css('margin-left', '0').css('padding-left', '235px');
     }, 650);
 
     $('.version').text($('.version').text() + '_mz' + VERSION);
